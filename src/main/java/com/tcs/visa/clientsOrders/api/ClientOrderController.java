@@ -3,6 +3,7 @@ package com.tcs.visa.clientsOrders.api;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tcs.visa.clientsOrders.dto.ClientDto;
@@ -40,13 +42,21 @@ public class ClientOrderController {
     }
 
     @GetMapping("/clients")
-    public ResponseEntity<List<ClientDto>> getAllClients() {
+    public ResponseEntity<List<ClientDto>> getAllClients(@RequestParam(name = "mailDomain", required = false) String mailDomain)  {
         List<Client> clients = clientRepository.findAll();
         List<ClientDto> clientDTOs = new ArrayList<>();
         for (Client client : clients) {
             ClientDto clientDTO = new ClientDto(client.getClientId(), client.getName(), client.getEmail());
             clientDTOs.add(clientDTO);
         }
+        
+        //Stream to filter all employees by mail domain
+        if (!(mailDomain == null)) {
+        	clientDTOs = clientDTOs.stream()
+        			.filter(t -> t.getEmail().toLowerCase().endsWith( "@" + mailDomain + ".com"))
+        			.collect(Collectors.toList());
+		}
+        
         return ResponseEntity.ok(clientDTOs);
     }
     
@@ -102,7 +112,7 @@ public class ClientOrderController {
     @GetMapping("/{clientId}/orders")
     public ResponseEntity<List<OrderDto>> getOrdersByClient(@PathVariable Long clientId) {
         Optional<Client> clientOptional = clientRepository.findById(clientId);
-        if (!clientOptional.isPresent()) {
+        if (clientOptional.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
 
