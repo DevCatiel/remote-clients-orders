@@ -53,7 +53,7 @@ public class ClientOrderController {
         //Stream to filter all employees by mail domain
         if (!(mailDomain == null)) {
         	clientDTOs = clientDTOs.stream()
-        			.filter(t -> t.getEmail().toLowerCase().endsWith( "@" + mailDomain + ".com"))
+        			.filter(t -> t.getEmail().toLowerCase().contains( "@" + mailDomain + "."))
         			.collect(Collectors.toList());
 		}
         
